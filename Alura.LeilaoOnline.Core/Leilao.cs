@@ -12,7 +12,9 @@ namespace Alura.LeilaoOnline.Core
             LeilaoEmAndamento,
             LeilaoFinalizado
         }
-        
+
+        private IModalidadeAvaliacao _modalidade;
+
         private Interessada _ultimoLance;
 
         private IList<Lance> _lances;
@@ -24,11 +26,13 @@ namespace Alura.LeilaoOnline.Core
         public Lance Ganhador { get; private set; }
 
 
-        public Leilao(string peca)
+        public Leilao(string peca, IModalidadeAvaliacao modalidade)
         {
             Peca = peca;
             _lances = new List<Lance>();
             Estado = EstadoLeilao.LeilaoAntesDoPregao;
+            _modalidade = modalidade;
+
         }
 
         public void RecebeLance(Interessada cliente, double valor)
@@ -51,10 +55,7 @@ namespace Alura.LeilaoOnline.Core
             if (Estado != EstadoLeilao.LeilaoEmAndamento)
                 throw new InvalidOperationException("Deve iniciar o pregão");
 
-            Ganhador = Lances
-                .DefaultIfEmpty(new Lance(null, 0))
-                .OrderBy(l => l.Valor)
-                .LastOrDefault();
+            Ganhador = _modalidade.Avalia(this);
 
             Estado = EstadoLeilao.LeilaoFinalizado;
         }
